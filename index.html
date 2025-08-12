@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PySentry - Rust-Powered Python Security Scanner. Fast vulnerability detection for Python projects.">
+    <meta name="keywords" content="python, security, vulnerability scanner, rust, pip-audit, dependencies, cybersecurity">
+    <meta name="author" content="PySentry">
+    
+    <title>🐍 PySentry - Python Security Scanner</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #fafafa;
+            --bg-card: #ffffff;
+            --bg-code: #f8f9fa;
+            
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            
+            --orange-primary: #ce422b;
+            --orange-light: #ea580c;
+            --orange-bg: #fff4f2;
+            
+            --border: #e5e5e5;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--orange-primary);
+        }
+
+        .nav-links .github-btn {
+            background: var(--orange-primary);
+            color: white;
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .nav-links .github-btn:hover {
+            background: var(--orange-light);
+            color: white;
+        }
+
+        /* Mobile menu */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .menu-toggle span {
+            width: 20px;
+            height: 2px;
+            background: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--orange-bg);
+            color: var(--orange-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            color: var(--orange-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .hero-description {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--orange-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--orange-light);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--orange-primary);
+        }
+
+        /* Terminal */
+        .terminal {
+            max-width: 700px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .terminal-header {
+            background: var(--bg-code);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f57; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #28ca42; }
+
+        .terminal-body {
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .terminal pre {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .terminal .command {
+            color: var(--orange-primary);
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--orange-primary);
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem;
+            max-width: 600px;
+            margin: 3rem auto 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--orange-primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Sections */
+        section {
+            padding: 4rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            transition: box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--orange-bg);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+        }
+
+        /* Performance */
+        .performance {
+            background: var(--bg-card);
+        }
+
+        .benchmark-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .benchmark-card {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: box-shadow 0.2s;
+        }
+
+        .benchmark-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .benchmark-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--orange-primary);
+        }
+
+        .benchmark-label {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+        }
+
+        .benchmark-detail {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Installation */
+        .install-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .tab-btn.active {
+            background: var(--orange-primary);
+            color: white;
+            border-color: var(--orange-primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: var(--orange-primary);
+        }
+
+        .install-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .install-panel {
+            display: none;
+        }
+
+        .install-panel.active {
+            display: block;
+        }
+
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .code-comment {
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 3rem 0 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-brand h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-brand p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .footer-github {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .footer-github a {
+            color: var(--orange-primary);
+            text-decoration: none;
+        }
+
+        .footer-links h4 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.25rem 0;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--orange-primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-card);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 200px;
+                justify-content: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="#" class="logo">
+                <span>🐍</span>
+                <span>PySentry</span>
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#performance">Performance</a></li>
+                <li><a href="#installation">Install</a></li>
+                <li><a target="_blank" href="https://github.com/nyudenkov/pysentry" class="github-btn">GitHub →</a></li>
+            </ul>
+
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-badge">
+                    ⚡ Rust-Powered Performance
+                </div>
+                
+                <h1>PySentry</h1>
+                
+                <div class="hero-subtitle">
+                    Python Security Scanner
+                </div>
+                
+                <p class="hero-description">
+                    Fast vulnerability detection for Python projects. 
+                    Built with Rust for performance and reliability.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="#installation" class="btn btn-primary">
+                        Get Started →
+                    </a>
+                    <a target="_blank" href="https://github.com/nyudenkov/pysentry" class="btn btn-secondary">
+                        View on GitHub
+                    </a>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                    </div>
+                    <div class="terminal-body">
+                        <pre><code><span class="command">$ uvx pysentry-rs /path/to/project</span>
+
+🔍 Scanning dependencies...
+✅ 10 packages analyzed in 0.26s
+⚠️  Found 2 vulnerabilities
+
+📊 Summary:
+   Critical: 1  |  High: 1  |  Medium: 0  |  Low: 0</code></pre>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">20x</div>
+                        <div class="stat-label">Faster than traditional tools</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">4x</div>
+                        <div class="stat-label">Less Memory</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Reliable</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Data Sources</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Built for Security & Speed</h2>
+                    <p class="section-subtitle">Modern Python security scanning with Rust performance</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3 class="feature-title">Blazing Fast</h3>
+                        <p class="feature-description">
+                            Written in Rust with async processing and intelligent caching. 
+                            Efficiently scan dependencies with optimized performance.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3 class="feature-title">Comprehensive Coverage</h3>
+                        <p class="feature-description">
+                            Checks PyPA Advisory Database, PyPI, and OSV.dev simultaneously 
+                            for maximum vulnerability detection.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">📦</div>
+                        <h3 class="feature-title">Universal Support</h3>
+                        <p class="feature-description">
+                            Works with uv.lock, poetry.lock, pyproject.toml, and requirements.txt. 
+                            Compatible with any Python workflow.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3 class="feature-title">Smart Analysis</h3>
+                        <p class="feature-description">
+                            Intelligent dependency resolution with direct vs transitive analysis 
+                            and configurable severity filtering.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3 class="feature-title">Flexible Output</h3>
+                        <p class="feature-description">
+                            Export as JSON, SARIF, Markdown, or human-readable format. 
+                            Perfect integration with CI/CD pipelines.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <h3 class="feature-title">Enterprise Ready</h3>
+                        <p class="feature-description">
+                            SARIF output for GitHub Security tab, configurable exit codes, 
+                            and built for automated security workflows.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="performance" class="performance">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Performance Results</h2>
+                    <p class="section-subtitle">Benchmark comparison with pip-audit on real projects</p>
+                </div>
+
+                <div class="benchmark-cards">
+                    <div class="benchmark-card">
+                        <div class="benchmark-number">1.1s</div>
+                        <div class="benchmark-label">Avg Scan Time</div>
+                        <div class="benchmark-detail">vs 21.1s traditional tools</div>
+                    </div>
+
+                    <div class="benchmark-card">
+                        <div class="benchmark-number">11MB</div>
+                        <div class="benchmark-label">Memory Usage</div>
+                        <div class="benchmark-detail">vs 47MB traditional tools</div>
+                    </div>
+
+                    <!-- <div class="benchmark-card">
+                        <div class="benchmark-number">55</div>
+                        <div class="benchmark-label">Packages/Test</div>
+                        <div class="benchmark-detail">Large project support</div>
+                    </div> -->
+
+                    <!-- <div class="benchmark-card">
+                        <div class="benchmark-number">3</div>
+                        <div class="benchmark-label">Data Sources</div>
+                        <div class="benchmark-detail">PyPA, OSV, PyPI</div>
+                    </div> -->
+                </div>
+            </div>
+        </section>
+
+        <section id="installation">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Quick Installation</h2>
+                    <p class="section-subtitle">Get started with your preferred method</p>
+                </div>
+
+                <div class="install-tabs">
+                    <button class="tab-btn active" onclick="showTab('uvx')">uvx</button>
+                    <button class="tab-btn" onclick="showTab('pip')">pip</button>
+                    <button class="tab-btn" onclick="showTab('cargo')">cargo</button>
+                    <button class="tab-btn" onclick="showTab('binary')">binary</button>
+                </div>
+
+                <div class="install-content">
+                    <div id="uvx" class="install-panel active">
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Recommended: Run instantly without installation
+                        </p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code><span class="code-comment"># Quick scan</span>
+uvx pysentry-rs /path/to/project
+
+<span class="code-comment"># With options</span>
+uvx pysentry-rs --sources pypa,osv --format json</code></pre>
+                        </div>
+                    </div>
+
+                    <div id="pip" class="install-panel">
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Install as Python package (Linux/macOS)
+                        </p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code><span class="code-comment"># Install from PyPI</span>
+pip install pysentry-rs
+
+<span class="code-comment"># Run scanner</span>
+pysentry-rs /path/to/project</code></pre>
+                        </div>
+                    </div>
+
+                    <div id="cargo" class="install-panel">
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Install with Rust package manager
+                        </p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code><span class="code-comment"># Install from crates.io</span>
+cargo install pysentry
+
+<span class="code-comment"># Run scanner</span>
+pysentry /path/to/project</code></pre>
+                        </div>
+                    </div>
+
+                    <div id="binary" class="install-panel">
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                            Download pre-built binaries
+                        </p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <pre><code><span class="code-comment"># Linux/macOS</span>
+curl -L https://github.com/nyudenkov/pysentry/releases/latest/download/pysentry-linux-x64.tar.gz | tar -xz
+./pysentry-linux-x64/pysentry --help</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3><span>🐍</span> PySentry</h3>
+                    <p>
+                        Rust-powered Python security scanner. Fast vulnerability 
+                        detection with comprehensive coverage.
+                    </p>
+                    <div class="footer-github">
+                        <a target="_blank" href="https://github.com/nyudenkov/pysentry">github.com/nyudenkov/pysentry</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a target="_blank" href="https://github.com/nyudenkov/pysentry">Repository</a></li>
+                        <li><a target="_blank" href="https://github.com/nyudenkov/pysentry/blob/main/README.md">Documentation</a></li>
+                        <li><a target="_blank" href="https://github.com/nyudenkov/pysentry/issues">Issues</a></li>
+                        <li><a target="_blank" href="https://github.com/nyudenkov/pysentry/releases">Releases</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Packages</h4>
+                    <ul>
+                        <li><a target="_blank" href="https://pypi.org/project/pysentry-rs/">PyPI</a></li>
+                        <li><a target="_blank" href="https://crates.io/crates/pysentry">Crates.io</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 PySentry. Built with Rust for Python security.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Copy code
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.install-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
